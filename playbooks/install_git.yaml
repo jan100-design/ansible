@@ -1,0 +1,17 @@
+---
+- name: Install Git Client
+  hosts: all
+  become: yes
+  tasks:
+    - name: Git Install
+      apt:
+        name: git
+        state: present
+- name: Checkout Git
+  hosts: all
+  become: yes
+  environment:
+      GIT_SSL_NO_VERIFY: 'true'
+  roles:
+    - git_checkout
+...

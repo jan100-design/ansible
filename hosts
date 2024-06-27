@@ -1,0 +1,2 @@
+[servers]
+192.168.136.133 ansible_user=slave ansible_ssh_pass=slave ansible_become=yes ansible_become_password=slave
