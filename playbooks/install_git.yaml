@@ -2,16 +2,61 @@
 - name: Install Git Client
   hosts: all
   become: yes
+  vars:
+    git_repo_url: 'https://github.com/jan100design/ansible.git'
+    git_dest: '/home/ubuntuuser/git_checkout'
+    git_branch: 'main'
+    git_username: 'jan100design'
+#    git_email: 'yanslow20@gmail.com'
+#    git_commit_message: 'Auto commit from Ansible'
   tasks:
     - name: Git Install
       apt:
         name: git
         state: present
-- name: Checkout Git
+
+    - name: Clone Git
+      git:
+        repo: "{{ git_repo_url }}"
+        dest: "{{ git_dest }}"
+        version: "{{ git_branch }}"
+        clone: yes
+        update: yes
+        force: yes
+      environment:
+        GIT_SSL_NO_VERIFY: 'true'
+
+#  hosts: all
+#  become: yes
+#  environment:
+#  roles:
+#    - git_checkout
+
+- name: Find and Display Python Script
   hosts: all
   become: yes
-  environment:
-      GIT_SSL_NO_VERIFY: 'true'
-  roles:
-    - git_checkout
+  tasks:
+    - name: Find the Python script
+      find:
+        paths: "{{ git_dest }}"
+        patterns: 'show_dirs.py'
+        recurse: yes
+      register: found_files
+
+    - name: Display found files
+      debug:
+        msg: "Found file: {{ item.path }}"
+      with_items: "{{ found_files.files }}"
+
+    - name: Run Script
+      command: "{{ ansible_python_interpreter }} /home/ubuntuuser/git_checkout"
+      register: script_output
+      ignore_errors: yes
+#      - name: Show ansible-doc for find module
+#        command: ansible-doc find
+#        register: doc_output
+
+    - name: Display output
+      debug:
+        msg: "{{ doc_output.stdout }}"
 ...

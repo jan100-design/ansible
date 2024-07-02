@@ -1,14 +1,14 @@
----
-- name: Dir Exist
-  file:
-    path: /home/master/git_checkout
-    state: directory
-
-- name: Git Clone
-  git:
-    repo: 'https://github.com/jan100-design/ansible'
-    dist: /home/slave/git_checkout/jan100
-    version: master
-    clone: yes
-    update: yes
-...
+#---
+#- name: Dir Exist
+#  file:
+#    path: /home/master/git_checkout
+#    state: directory
+#
+#- name: Git Clone
+#  git:
+#    repo: 'https://github.com/jan100-design/ansible'
+#    dist: /home/slave/git_checkout/jan100
+#    version: master
+#    clone: yes
+#    update: yes
+#...
