@@ -1,62 +1,71 @@
 ---
-- name: Install Git Client
-  hosts: all
-  become: yes
+
+- hosts: all
+  any_errors_fatal: true
+  gather_facts: True
   vars:
     git_repo_url: 'https://github.com/jan100design/ansible.git'
-    git_dest: '/home/ubuntuuser/git_checkout'
+    git_dest: '~{{ ansible_user|default("root") }}/git_checkout'
     git_branch: 'main'
     git_username: 'jan100design'
-#    git_email: 'yanslow20@gmail.com'
-#    git_commit_message: 'Auto commit from Ansible'
+    target_script: 'show_dirs.py'
+    git_pull: True
+
   tasks:
-    - name: Git Install
-      apt:
+
+    - name: "Git Install"
+      package:
         name: git
         state: present
+      become: True
 
-    - name: Clone Git
+    - name: "Create depend dir"
+      file:
+        path: "{{ git_dest }}"
+        state: "directory"
+        recurse: False
+        force: False
+        follow: True
+        mode: "u=rwx,g=r,o=r"
+        owner: "{{ ansible_user|default('root') }}"
+
+    - name: "Clone Git repo {{ git_repo_url }}"
       git:
         repo: "{{ git_repo_url }}"
         dest: "{{ git_dest }}"
         version: "{{ git_branch }}"
-        clone: yes
-        update: yes
-        force: yes
+        clone: True
+        update: True
+        force: True
       environment:
         GIT_SSL_NO_VERIFY: 'true'
+      when: '( 
+           ( git_pull is defined )
+       and ( git_pull|bool )
+          )'
 
-#  hosts: all
-#  become: yes
-#  environment:
-#  roles:
-#    - git_checkout
-
-- name: Find and Display Python Script
-  hosts: all
-  become: yes
-  tasks:
-    - name: Find the Python script
+    - name: "Find the Python script"
       find:
         paths: "{{ git_dest }}"
-        patterns: 'show_dirs.py'
-        recurse: yes
+        patterns: '{{ target_script }}'
+        recurse: True
       register: found_files
 
-    - name: Display found files
+    - name: "Display found files"
       debug:
-        msg: "Found file: {{ item.path }}"
-      with_items: "{{ found_files.files }}"
+        msg: "Found file: {{ CurrentFile.path }}"
+      loop: "{{ found_files.files | ternary(found_files.files, []) }}"
+      loop_control:
+        loop_var: CurrentFile
+        label: "Work with file {{ CurrentFile.path }}"
 
-    - name: Run Script
-      command: "{{ ansible_python_interpreter }} /home/ubuntuuser/git_checkout"
+    - name: "Run Script"
+      command: "{{ ansible_python_interpreter }} {{ found_files.files[0]['path'] }}"
       register: script_output
-      ignore_errors: yes
-#      - name: Show ansible-doc for find module
-#        command: ansible-doc find
-#        register: doc_output
+      changed_when: False
+      ignore_errors: True
 
-    - name: Display output
+    - name: "Display output"
       debug:
-        msg: "{{ doc_output.stdout }}"
-...
+        msg: "{{ script_output.stdout }}"
+      when: '( script_output is success )'
