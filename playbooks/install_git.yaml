@@ -2,30 +2,30 @@
 
 - hosts: all
   any_errors_fatal: true
-  gather_facts: True
+  gather_facts: true
   vars:
     git_repo_url: 'https://github.com/jan100design/ansible.git'
     git_dest: '~{{ ansible_user|default("root") }}/git_checkout'
     git_branch: 'main'
     git_username: 'jan100design'
     target_script: 'show_dirs.py'
-    git_pull: True
-
+    git_pull: true
+    ansible_python_interpreter: '/usr/bin/python3'
   tasks:
 
     - name: "Git Install"
       package:
         name: git
         state: present
-      become: True
+      become: true
 
     - name: "Create depend dir"
       file:
         path: "{{ git_dest }}"
         state: "directory"
-        recurse: False
-        force: False
-        follow: True
+        recurse: false
+        force: false
+        follow: true
         mode: "u=rwx,g=r,o=r"
         owner: "{{ ansible_user|default('root') }}"
 
@@ -34,9 +34,9 @@
         repo: "{{ git_repo_url }}"
         dest: "{{ git_dest }}"
         version: "{{ git_branch }}"
-        clone: True
-        update: True
-        force: True
+        clone: true
+        update: true
+        force: true
       environment:
         GIT_SSL_NO_VERIFY: 'true'
       when: '( 
@@ -48,7 +48,7 @@
       find:
         paths: "{{ git_dest }}"
         patterns: '{{ target_script }}'
-        recurse: True
+        recurse: true
       register: found_files
 
     - name: "Display found files"
